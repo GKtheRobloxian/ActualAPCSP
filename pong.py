@@ -11,6 +11,8 @@ angleGoing = 0
 wn = trtl.Screen()
 lastKeyPress = ""
 counter = 0
+enemyPaddleFreezeRadInitial = float(50/3)
+enemyPaddleFreezeRad = enemyPaddleFreezeRadInitial
 
 # decorative shapes
 arena = trtl.Turtle()
@@ -29,24 +31,14 @@ centerline = trtl.Turtle()
 centerline.speed(0)
 centerline.color("white")
 centerline.fillcolor("white")
-centerline.pencolor("white")
-centerline.pensize(3)
-centerline.goto(0, -300)
-centerline.goto(0, 300)
+centerline.shape("square")
+centerline.shapesize(stretch_wid=20, stretch_len=0.06)
 
 middle = trtl.Turtle()
 middle.turtlesize(0.5)
 middle.shape("circle")
 middle.color("white")
 middle.fillcolor("white")
-
-# create ball
-pongBall = trtl.Turtle()
-pongBall.shape("circle")
-pongBall.color("white")
-pongBall.fillcolor("white")
-pongBall.speed(0)
-pongBall.penup()
 
 # create left paddle
 enemyPaddle = trtl.Turtle()
@@ -68,6 +60,23 @@ userPaddle.speed(0)
 userPaddle.goto(220, 0)
 userPaddle.shapesize(stretch_wid = 5, stretch_len = 1)
 
+# create ball
+pongBall = trtl.Turtle()
+pongBall.shape("circle")
+pongBall.color("white")
+pongBall.fillcolor("white")
+pongBall.speed(0)
+pongBall.penup()
+
+# create direction indicator
+dirIndicator = trtl.Turtle()
+dirIndicator.fillcolor("red")
+dirIndicator.color("red")
+dirIndicator.pencolor("red")
+dirIndicator.pensize(6)
+dirIndicator.turtlesize(0.01)
+dirIndicator.speed(0)
+
 # initialize paddle coordinates
 enemyPaddleX = enemyPaddle.xcor()
 enemyPaddleY = enemyPaddle.ycor()
@@ -77,9 +86,17 @@ userPaddleY = userPaddle.ycor()
 
 # initialize ball direction
 if (random.randint(1, 2) == 1):
-    angleGoing = random.randint(10, 170)
+    angleGoing = random.randint(40, 140)
 else:
-    angleGoing = random.randint(190, 350)
+    angleGoing = random.randint(220, 320)
+dirIndicator.seth(angleGoing)
+dirIndicator.penup()
+dirIndicator.forward(13)
+dirIndicator.pendown()
+dirIndicator.forward(40)
+dirIndicator.turtlesize(2)
+dirIndicator.penup()
+dirIndicator.forward(12)
 angleGoing = float(math.radians(angleGoing))
 xVelocity = float(math.cos(angleGoing) * velocity)
 yVelocity = float(math.sin(angleGoing) * velocity)
@@ -90,6 +107,14 @@ def RandomAngle(min, max):
     global xVelocity
     global yVelocity
     angleGoing = random.randint(min, max)
+    dirIndicator.goto(pongBall.xcor(), pongBall.ycor())
+    dirIndicator.seth(angleGoing)
+    dirIndicator.forward(13)
+    dirIndicator.pendown()
+    dirIndicator.forward(40)
+    dirIndicator.turtlesize(2)
+    dirIndicator.penup()
+    dirIndicator.forward(12)
     angleGoing = float(math.radians(angleGoing))
     xVelocity = float(math.cos(angleGoing) * velocity)
     yVelocity = float(math.sin(angleGoing) * velocity)
@@ -100,11 +125,11 @@ def MoveUp():
     global counter
     global userPaddleX
     global userPaddleY
-    if (counter <= 4):
+    if (counter <= 3):
         if (userPaddleY < 150):
-            userPaddle.goto(userPaddle.xcor(), userPaddle.ycor() + paddleVelocity * 3)
+            userPaddle.goto(userPaddle.xcor(), userPaddle.ycor() + paddleVelocity * 1.5)
         lastKeyPress = "w"
-        counter = 7
+        counter = 4
     
     userPaddleX = userPaddle.xcor()
     userPaddleY = userPaddle.ycor()
@@ -115,11 +140,11 @@ def MoveDown():
     global counter
     global userPaddleX
     global userPaddleY
-    if (counter <= 4):
+    if (counter <= 3):
         if (userPaddleY > -150):
-            userPaddle.goto(userPaddle.xcor(), userPaddle.ycor() - paddleVelocity * 3)
+            userPaddle.goto(userPaddle.xcor(), userPaddle.ycor() - paddleVelocity * 1.5)
         lastKeyPress = "s"
-        counter = 7
+        counter = 4
     
     userPaddleX = userPaddle.xcor()
     userPaddleY = userPaddle.ycor()
@@ -127,22 +152,24 @@ def MoveDown():
 def Flatten():
     global xVelocity
     global yVelocity
-    xVelocity = xVelocity * 1.3
-    yVelocity = yVelocity * (1/1.3)
+    xVelocity = xVelocity * 1.5
+    yVelocity = yVelocity / 1.3
 
 def Steepen():
     global xVelocity
     global yVelocity
-    xVelocity = xVelocity * (1/1.3)
-    yVelocity = yVelocity * 1.3
+    xVelocity = xVelocity / 1.3
+    yVelocity = yVelocity * 1.5
 
-wn.onkeypress(MoveUp, "w")
-wn.onkeypress(MoveDown, "s")
+wn.onkeypress(MoveUp, "Up")
+wn.onkeypress(MoveDown, "Down")
 wn.listen()
+
+time.sleep(1.5)
 
 while True:
     wn.update()
-    time.sleep(0.05)
+    time.sleep(float(1/30))
 
     # keep updating positions for both paddles
     enemyPaddleX = enemyPaddle.xcor()
@@ -150,13 +177,19 @@ while True:
 
     counter -= 1
 
-    centerline.goto(centerline.xcor(), centerline.ycor() * -1)
+    if (yVelocity > velocity * 0.7):
+        enemyPaddleFreezeRad = (enemyPaddleFreezeRadInitial * enemyPaddleFreezeRadInitial) / yVelocity
+
+    dirIndicator.turtlesize(0.01)
+    dirIndicator.penup()
+    dirIndicator.goto(0, 500)
 
     # automatically move enemy paddle towards ball's y-coordinate
-    if (enemyPaddleY < pongBall.ycor() and enemyPaddleY < 150):
-        enemyPaddle.goto(enemyPaddle.xcor(), enemyPaddle.ycor() + paddleVelocity)
-    elif (enemyPaddleY > pongBall.ycor() and enemyPaddleY > -150):
-        enemyPaddle.goto(enemyPaddle.xcor(), enemyPaddle.ycor() - paddleVelocity)
+    if (math.fabs(enemyPaddleY - pongBall.ycor()) > enemyPaddleFreezeRad):
+        if (enemyPaddleY < pongBall.ycor() and enemyPaddleY < 150):
+            enemyPaddle.goto(enemyPaddle.xcor(), enemyPaddle.ycor() + paddleVelocity)
+        elif (enemyPaddleY > pongBall.ycor() and enemyPaddleY > -150):
+            enemyPaddle.goto(enemyPaddle.xcor(), enemyPaddle.ycor() - paddleVelocity)
     # move ball
     pongBall.goto(pongBall.xcor() + xVelocity, pongBall.ycor() + yVelocity)
     # bounce ball off of floor and ceiling
@@ -167,29 +200,35 @@ while True:
         if (math.fabs(xVelocity) <= 3):
             if (yVelocity < 0):
                 RandomAngle(210, 330)
+                time.sleep(0.75)
             elif (yVelocity > 0):
                 RandomAngle(30, 150)
+                time.sleep(0.75)
     # check if the paddles are in range of the ball, if they are, bounce the ball back, otherwise, reset ball
-    if (math.fabs(pongBall.xcor()) >= 195):
-        if (pongBall.xcor() < 0 and math.fabs(enemyPaddleY - pongBall.ycor()) <= 57.5 and pongBall.xcor() > -215):
+    if (math.fabs(pongBall.xcor()) >= 200):
+        if (pongBall.xcor() < 0 and math.fabs(enemyPaddleY - pongBall.ycor()) <= 55):
             xVelocity = xVelocity * -1
+            pongBall.setx(-200)
             if (xVelocity < 0):
                 xVelocity = xVelocity * -1
-        elif (pongBall.xcor() > 0 and math.fabs(userPaddleY - pongBall.ycor()) <= 57.5 and pongBall.xcor() < 215):
-            xVelocity = xVelocity * -1
+        elif (pongBall.xcor() > 0 and math.fabs(userPaddleY - pongBall.ycor()) <= 55):
+            pongBall.setx(200)
             if (xVelocity > 0):
                 xVelocity = xVelocity * -1
-            elif (counter > 0):
+            if (counter > 0):
                 if ((lastKeyPress == "s" and yVelocity > 0) or (lastKeyPress == "w" and yVelocity < 0)):
                     Flatten()
                 elif ((lastKeyPress == "w" and yVelocity > 0) or (lastKeyPress == "s" and yVelocity < 0)):
                     Steepen()
-        elif (math.fabs(pongBall.xcor()) >= 225):
+        elif (math.fabs(pongBall.xcor()) >= 220):
             pongBall.goto(0, 0)
+            enemyPaddle.sety(0)
+            userPaddle.sety(0)
             if (xVelocity > 0):
                 if (random.randint(1, 2) == 1):
-                    RandomAngle (10, 80)
+                    RandomAngle (20, 70)
                 else:
-                    RandomAngle (280, 350)
+                    RandomAngle (290, 340)
             else:
-                RandomAngle (100, 260)
+                RandomAngle (110, 250)
+            time.sleep(2)
