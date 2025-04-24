@@ -106,6 +106,8 @@ def RandomAngle(min, max):
     global angleGoing
     global xVelocity
     global yVelocity
+    global dirIndicator
+    global pongBall
     angleGoing = random.randint(min, max)
     dirIndicator.goto(pongBall.xcor(), pongBall.ycor())
     dirIndicator.seth(angleGoing)
