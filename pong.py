@@ -363,25 +363,27 @@ while True:
                 # makes the ball's angle steeper if the user's last input is in the same direction as the ball's movement
                 elif ((lastKeyPress == "Up" and yVelocity > 0) or (lastKeyPress == "Down" and yVelocity < 0)):
                     Steepen()
+        # reset paddle and ball positions
+        # if the enemy scored, make the ball go to the player
+        # if the player scored, make the ball go to the enemy
+        # update scores and pause game briefly
         elif (math.fabs(pongBall.xcor()) >= 220):
-            # reset paddle and ball positions
             pongBall.goto(0, 0)
             enemyPaddle.sety(0)
+            enemyPaddleY = 0
             userPaddle.sety(0)
+            userPaddleY = 0
             if (xVelocity > 0):
-                # if the enemy scored, make the ball go to the player
                 enemyScore += 1
                 if (random.randint(1, 2) == 1):
                     RandomAngle (30, 60)
                 else:
                     RandomAngle (300, 330)
             else:
-                # if the player scored, make the ball go to the enemy
                 userScore += 1
                 if (random.randint(1,2) == 1):
                     RandomAngle (120, 150)
                 else:
                     RandomAngle (210, 240)
-            # update scores and pause game briefly
             UpdateScores()
             time.sleep(2)
