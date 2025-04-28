@@ -5,6 +5,7 @@ import math
 import time
 
 # sidenote: i understand i don't use the usual python naming conventions; this was admittedly intentional
+# in any case, this is pong with a bit of flair
 
 # initializing basic variables
 wn = trtl.Screen()
@@ -17,7 +18,7 @@ enemyPaddleFreezeRadInitial = 15
 enemyPaddleFreezeRad = enemyPaddleFreezeRadInitial
 userScore = 0
 enemyScore = 0
-
+# color list! i needed a list. :P
 colorList = ["red", "blue", "white", "orange", "yellow"]
 enemyColor = 0
 userColor = 1
