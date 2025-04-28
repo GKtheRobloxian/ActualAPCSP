@@ -4,17 +4,24 @@ import random
 import math
 import time
 
+# sidenote: i understand i don't use the usual python naming conventions; this was admittedly intentional
+
 # initializing basic variables
-paddleVelocity = 14.4
-velocity = 21.6
-angleGoing = 0
 wn = trtl.Screen()
+paddleVelocity = 14
+ballVelocity = 18
+angleGoing = 0
 lastKeyPress = ""
 inputCounter = 0
 enemyPaddleFreezeRadInitial = 15
 enemyPaddleFreezeRad = enemyPaddleFreezeRadInitial
 userScore = 0
 enemyScore = 0
+
+colorList = ["red", "blue", "white", "orange", "yellow"]
+enemyColor = 0
+userColor = 1
+ballColor = 2
 
 # decorative shapes
 arena = trtl.Turtle()
@@ -108,7 +115,7 @@ userPaddleY = userPaddle.ycor()
 
 randomStart = random.randint(1,4)
 
-# initialize ball direction and show it with arrow
+# initialize ball direction and show it with arrow; same as RandomAngle function
 if (randomStart == 1):
     angleGoing = random.randint(40, 60)
 elif (randomStart == 2):
@@ -126,8 +133,8 @@ dirIndicator.turtlesize(2)
 dirIndicator.penup()
 dirIndicator.forward(12)
 angleGoing = float(math.radians(angleGoing))
-xVelocity = float(math.cos(angleGoing) * velocity)
-yVelocity = float(math.sin(angleGoing) * velocity)
+xVelocity = float(math.cos(angleGoing) * ballVelocity)
+yVelocity = float(math.sin(angleGoing) * ballVelocity)
 
 # used to set random angle for the ball and show it with arrow
 def RandomAngle(min, max):
@@ -136,6 +143,7 @@ def RandomAngle(min, max):
     global yVelocity
     global dirIndicator
     global pongBall
+    # sets a random angle for the ball, then indicates it with an arrow
     angleGoing = random.randint(min, max)
     dirIndicator.goto(pongBall.xcor(), pongBall.ycor())
     dirIndicator.seth(angleGoing)
@@ -145,9 +153,10 @@ def RandomAngle(min, max):
     dirIndicator.turtlesize(2)
     dirIndicator.penup()
     dirIndicator.forward(12)
+    # converts angle to radians and sets velocities accordingly
     angleGoing = float(math.radians(angleGoing))
-    xVelocity = float(math.cos(angleGoing) * velocity)
-    yVelocity = float(math.sin(angleGoing) * velocity)
+    xVelocity = float(math.cos(angleGoing) * ballVelocity)
+    yVelocity = float(math.sin(angleGoing) * ballVelocity)
 
 # moves user paddle up
 def MoveUp():
@@ -156,10 +165,13 @@ def MoveUp():
     global inputCounter
     global userPaddleX
     global userPaddleY
+    # vv buffer to ensure the user can't just move before the game even updates
     if (inputCounter <= 3):
         if (userPaddleY < 160):
             userPaddle.goto(userPaddle.xcor(), userPaddle.ycor() + paddleVelocity * 1.25)
-        lastKeyPress = "w"
+        # records the last input
+        lastKeyPress = "Up"
+        # 4 frames given to either sharpen or flatten angle depending on input
         inputCounter = 4
     
     userPaddleX = userPaddle.xcor()
@@ -172,10 +184,13 @@ def MoveDown():
     global inputCounter
     global userPaddleX
     global userPaddleY
+    # vv buffer to ensure the user can't just move before the game even updates
     if (inputCounter <= 3):
         if (userPaddleY > -160):
             userPaddle.goto(userPaddle.xcor(), userPaddle.ycor() - paddleVelocity * 1.25)
-        lastKeyPress = "s"
+        # records the last input
+        lastKeyPress = "Down"
+        # 4 frames given to either sharpen or flatten angle depending on input
         inputCounter = 4
     
     userPaddleX = userPaddle.xcor()
@@ -185,6 +200,7 @@ def MoveDown():
 def Flatten():
     global xVelocity
     global yVelocity
+    # reduces y velocity and increases x velocity to flatten angle
     xVelocity = xVelocity * 1.5
     yVelocity = yVelocity / 1.3
 
@@ -192,6 +208,7 @@ def Flatten():
 def Steepen():
     global xVelocity
     global yVelocity
+    # reduces x velocity and increases y velocity to sharpen angle
     xVelocity = xVelocity / 1.3
     yVelocity = yVelocity * 1.5
 
@@ -201,14 +218,59 @@ def UpdateScores():
     global enemyScorer
     global userScore
     global userScorer
+    # writes down the new scores for the game
     enemyScorer.clear()
     enemyScorer.write(str(enemyScore), align="center", font=("Terminal", 32, "bold"))
     userScorer.clear()
     userScorer.write(str(userScore), align="center", font=("Terminal", 32, "bold"))
 
-# inputs, using up and down arrow keys to move the paddle up or down
+def CycleEnemyColor():
+    global enemyPaddle
+    global enemyColor
+    global enemyScorer
+    global colorList
+    # cycles enemy color
+    enemyColor = enemyColor + 1
+    enemyColor = enemyColor % len(colorList)
+    enemyPaddle.fillcolor(colorList[enemyColor])
+    enemyPaddle.color(colorList[enemyColor])
+    enemyScorer.pencolor(colorList[enemyColor])
+
+def CycleUserColor():
+    global userPaddle
+    global userColor
+    global colorList
+    # cycles user color
+    userColor = userColor + 1
+    userColor = userColor % len(colorList)
+    userPaddle.fillcolor(colorList[userColor])
+    userPaddle.color(colorList[userColor])
+    userScorer.pencolor(colorList[userColor])
+
+def CycleBallColor():
+    global pongBall
+    global dirIndicator
+    global ballColor
+    global colorList
+    # cycles ball color
+    ballColor = ballColor + 1
+    ballColor = ballColor % len(colorList)
+    pongBall.fillcolor(colorList[ballColor])
+    pongBall.color(colorList[ballColor])
+    # cycles arrow color depending on color of ball
+    ballColor = ballColor + 5
+    dirIndicator.pencolor(colorList[(ballColor - 2) % 5])
+    dirIndicator.color(colorList[(ballColor - 2) % 5])
+    dirIndicator.fillcolor(colorList[(ballColor - 2) % 5])
+    ballColor = ballColor - 5
+    
+
+# inputs, using up and down arrow keys to move the paddle up or down, using ZXC to cycle colors
 wn.onkeypress(MoveUp, "Up")
 wn.onkeypress(MoveDown, "Down")
+wn.onkeypress(CycleEnemyColor, "z")
+wn.onkeypress(CycleUserColor, "x")
+wn.onkeypress(CycleBallColor, "c")
 wn.listen()
 # pause before game begins
 time.sleep(1.5)
@@ -236,13 +298,14 @@ while True:
         userPaddle.sety(-160)
         userPaddleY = -160
 
+    # counts down frames from the user's last input
     inputCounter -= 1
 
     # makes the paddle less likely to pause moving when the ball is traveling at a sharp angle
-    if (yVelocity > velocity * 0.85):
+    if (yVelocity > ballVelocity * 0.85):
         enemyPaddleFreezeRad = (enemyPaddleFreezeRadInitial * enemyPaddleFreezeRadInitial) / yVelocity
 
-    # ensures the turtle for the direction indicator isn't visible
+    # ensures the turtle for the direction indicator isn't visible just in case
     dirIndicator.turtlesize(0.01)
     dirIndicator.penup()
     dirIndicator.goto(0, 500)
@@ -253,6 +316,7 @@ while True:
             if ((yVelocity > 0 and pongBall.ycor() < 165) or (pongBall.xcor() > 155) or (pongBall.xcor() < -155)):
                 enemyPaddle.goto(enemyPaddle.xcor(), enemyPaddle.ycor() + paddleVelocity)
             else:
+                # dampen paddle movement if the ball is moving opposite the paddle's movement
                 enemyPaddle.goto(enemyPaddle.xcor(), enemyPaddle.ycor() + paddleVelocity * 0.7)
         elif (enemyPaddleY > pongBall.ycor() and enemyPaddleY > -160):
             if ((yVelocity < 0 and pongBall.ycor() > -165) or (pongBall.xcor() > 155) or (pongBall.xcor() < -155)):
@@ -282,6 +346,7 @@ while True:
     if (math.fabs(pongBall.xcor()) >= 200):
         if (pongBall.xcor() < 0 and math.fabs(enemyPaddleY - pongBall.ycor()) <= 55):
             xVelocity = xVelocity * -1
+            # sets ball's position to in front of the paddles, one more measure to make sure they stay going the opposite direction once hit
             pongBall.setx(-200)
             if (xVelocity < 0):
                 xVelocity = xVelocity * -1
@@ -292,26 +357,30 @@ while True:
             # flattens or steepens the ball if the user's last input was close enough to when the ball was bounced back
             if (inputCounter > 0):
                 # makes the ball's angle flatter if the user's last input is opposite the direction of the ball's movement
-                if ((lastKeyPress == "s" and yVelocity > 0) or (lastKeyPress == "w" and yVelocity < 0)):
+                if ((lastKeyPress == "Down" and yVelocity > 0) or (lastKeyPress == "Up" and yVelocity < 0)):
                     Flatten()
                 # makes the ball's angle steeper if the user's last input is in the same direction as the ball's movement
-                elif ((lastKeyPress == "w" and yVelocity > 0) or (lastKeyPress == "s" and yVelocity < 0)):
+                elif ((lastKeyPress == "Up" and yVelocity > 0) or (lastKeyPress == "Down" and yVelocity < 0)):
                     Steepen()
         elif (math.fabs(pongBall.xcor()) >= 220):
+            # reset paddle and ball positions
             pongBall.goto(0, 0)
             enemyPaddle.sety(0)
             userPaddle.sety(0)
             if (xVelocity > 0):
+                # if the enemy scored, make the ball go to the player
                 enemyScore += 1
                 if (random.randint(1, 2) == 1):
                     RandomAngle (30, 60)
                 else:
                     RandomAngle (300, 330)
             else:
+                # if the player scored, make the ball go to the enemy
                 userScore += 1
                 if (random.randint(1,2) == 1):
                     RandomAngle (120, 150)
                 else:
                     RandomAngle (210, 240)
+            # update scores and pause game briefly
             UpdateScores()
             time.sleep(2)
